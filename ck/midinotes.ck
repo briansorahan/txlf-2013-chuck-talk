@@ -14,8 +14,8 @@ while (true) {
 
     // get the midimsg
     while (midiIn.recv(midiMsg)) {
-		if (midiMsg.data1 == 176) {
-			<<< "CC: ",  midiMsg.data2, "  Val: ", midiMsg.data3 >>>;
+		if (midiMsg.data1 == 144) {
+			<<< "Note: ",  midiMsg.data2, "  Velocity: ", midiMsg.data3 >>>;
 		}
     }
 }
