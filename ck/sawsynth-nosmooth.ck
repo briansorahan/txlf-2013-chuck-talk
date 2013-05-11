@@ -24,9 +24,8 @@ Event @ us[128];
 Gain g;
 JCRev r;
 LPF lpf;
-PitShift shifter;
 Chorus c;
-shifter => lpf => c => g => dac;
+lpf => /*c =>*/ g => dac;
 .2 => g.gain;
 .2 => r.mix;
 500 => lpf.freq;
@@ -34,7 +33,7 @@ shifter => lpf => c => g => dac;
 0.1 => c.modFreq;
 
 // handler for a single voice
-fun void handler(NoteEvent on) {
+fun void handler(NoteEvent on, UGen out) {
     // don't connect to dac until we need it
 	SawOsc saw;
     Event off;
@@ -42,14 +41,14 @@ fun void handler(NoteEvent on) {
 
     while (true) {
         on => now;
-        saw => shifter; // dynamically repatch
+        saw => out; // dynamically repatch
         on.note => note;
         note => Std.mtof => saw.freq;
         off @=> us[note];
 
         off => now;
         null @=> us[note];
-        saw =< shifter;
+        saw =< out;
     }
 }
 
@@ -58,33 +57,9 @@ fun void handler(NoteEvent on) {
 ////////////////////////////////////////
 
 function void filterMod(CcEvent @ ev, LPF @ filter) {
-    // total ramp duration
-    10::ms => dur rampDur;
-    // how often to sample the ramp
-    1::samp => dur srate;
-    // ramp length in units of srate
-    rampDur / srate => float rampLength;
-    // slope, intercept
-    float m, b, x;
-    
-    filter.freq() => float lastVal;
-    float currVal;
-    
     while (true) {
         ev => now;
-        ev.val => Std.mtof => currVal;
-        (currVal - lastVal) / rampLength => m;
-        lastVal => b;
-        0 => x;
-        
-        now + rampDur => time endRamp;
-        while (endRamp > now) {
-            m * x + b => filter.freq;
-            x + 1 => x;
-            srate => now;
-        }
-
-        currVal => lastVal;
+        ev.val => Std.mtof => filter.freq;
     }
 }
 
@@ -108,17 +83,9 @@ function void midiLoop() {
 			    if (midiMsg.data2 == 32) { // CC 32 => filter modulation
                     midiMsg.data3 => filterControl.val;
                     filterControl.broadcast();
-			    } else if (midiMsg.data2 == 5) {
-				    midiMsg.data3 => int midiVal;
-				    if (midiVal == 65 || midiVal == 64 || midiVal == 63) {
-					    ;
-				    } else {
-					    6 * ((midiVal - 64) / 63.0) => float amt;
-					    amt => shifter.shift;
-				    }
 			    } else {
-				    <<< "CC:  ", midiMsg.data2 >>>;
-				    <<< "Val: ", midiMsg.data3 >>>;
+				    // <<< "CC:  ", midiMsg.data2 >>>;
+				    // <<< "Val: ", midiMsg.data3 >>>;
 			    }				
 		    } else if (midiMsg.data1 == 224) {
 			    // Pitch Bend
@@ -141,7 +108,7 @@ function void midiLoop() {
 
 // spork handlers, one for each voice
 for( 0 => int i; i < 20; i++ ) {
-	spork ~ handler(on);
+	spork ~ handler(on, lpf);
 }
 
 spork ~ midiLoop();
