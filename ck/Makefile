@@ -2,7 +2,9 @@
 
 # Unfortunately, the order in which we load classes
 # matters here.
-MIDICLASSES := $(addprefix classes/, NoteEvent.ck ControlEvent.ck MidiInstrument.ck MidiMixer.ck AmpEnvelope.ck)
+MIDICLASSES := $(addprefix classes/, NoteEvent.ck ControlEvent.ck MidiInstrument.ck MidiMixer.ck AmpEnvelope.ck SimpleFM.ck VibratoFM.ck)
+
+SYNTHCLASSES := $(addprefix
 
 MIDITEST = test/MidiInstrumentTest.ck
 
@@ -14,9 +16,9 @@ midi-test:
 additive-synth:
 	chuck $(MIDICLASSES) additive.ck
 
-fm-synth:
-	chuck $(MIDICLASSES) simplefm.ck
+simple-fm:
+	chuck $(MIDICLASSES) synths/SimpleFM.ck
 
-fm-synth2:
-	chuck $(MIDICLASSES) fm-whatis.ck
+vibrato-fm:
+	chuck $(MIDICLASSES) synths/SimpleFM.ck synths/VibratoFM.ck
 

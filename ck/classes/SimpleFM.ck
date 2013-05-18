@@ -9,7 +9,7 @@
 // Brian Sorahan 2013
 
 
-class SimpleFM extends MidiInstrument {
+public class SimpleFM extends MidiInstrument {
     // Modulator params
     float harmonicity;
     float modFreq;
@@ -53,6 +53,12 @@ class SimpleFM extends MidiInstrument {
         ampEnvelope.release => now;
     }
 
+    // Map MIDI to modulator frequency
+    fun float mapModFreq(int val) {
+        return val => Std.mtof;
+    }
+
+
     // Control modulation with MIDI CC
     fun void control(ControlEvent cev) {
         cev.cc => int cc;
@@ -60,7 +66,7 @@ class SimpleFM extends MidiInstrument {
         if (cc == ccHarmonicity) {
             val => Std.mtof => harmonicity;
         } else if (cc == ccModFreq) {
-            val => Std.mtof => modFreq;
+            val => mapModFreq => modFreq;
         } else {
             ampEnvelope.control(cc, val);
         }
@@ -77,23 +83,8 @@ class SimpleFM extends MidiInstrument {
             if (cc == ccHarmonicity) {
                 val => Std.mtof => modulator.gain;
             } else if (cc == ccModFreq) {
-                val => Std.mtof => modulator.freq;
+                val => mapModFreq => modulator.freq;
             }
         }
     }
-}
-
-
-
-SimpleFM simpleFM;
-MidiMixer mixer;
-mixer.masterGain => dac;
-mixer.connectReverb(simpleFM.out);
-
-spork ~ MidiInstrument.noteListen(simpleFM);
-spork ~ MidiInstrument.controlListen(simpleFM);
-spork ~ MidiInstrument.controlListen(mixer);
-
-while (1) {
-    1000::ms => now;
 }
