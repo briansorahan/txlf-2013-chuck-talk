@@ -30,17 +30,17 @@ public class MidiInstrument {
     static NoteEvent @ noteEvent;
     static ControlEvent @ controlEvent;
 
-    fun static void listen(NoteEvent nev, MidiInstrument inst) {
+    fun static void noteListen(MidiInstrument inst) {
         while (true) {
-            nev => now;
-            spork ~ inst.voice(nev);
+            noteEvent => now;
+            spork ~ inst.voice(noteEvent);
         }
     }
 
-    fun static void listen(ControlEvent cev, MidiInstrument inst) {
+    fun static void controlListen(MidiInstrument inst) {
         while (true) {
-            cev => now;
-            spork ~ inst.control(cev);
+            controlEvent => now;
+            spork ~ inst.control(controlEvent);
         }
     }
 
@@ -70,7 +70,7 @@ function void midiLoop(NoteEvent nev, ControlEvent cev, int traceNotes, int trac
     MidiMsg midiMsg;
     
     // this needs to get initialized outside of handleNote
-    Event @ noteOff[128];
+    Event noteOff[128];
     
     while (true) {
         traceMsg("... waiting for MidiIn event", traceMidi);
@@ -96,7 +96,7 @@ function void handleNote(NoteEvent nev, Event @ offEvents[], MidiMsg midiMsg, in
     traceMsg("... MIDI Note " + note + ", " + velocity, trace);
     
 	if (velocity > 0) {
-        traceMsg("... triggering note on for " + note, trace);
+        // traceMsg("... triggering note on for " + note, trace);
 
         // Trigger Note On
         note => nev.note;
@@ -110,9 +110,8 @@ function void handleNote(NoteEvent nev, Event @ offEvents[], MidiMsg midiMsg, in
     // Trigger Note Off
     else {
         if (offEvents[note] != null) {
-            traceMsg("... triggering note off for " + note, trace);
-            offEvents[note].signal();
-            null => offEvents[note];
+            // traceMsg("... triggering note off for " + note, trace);
+            offEvents[note].broadcast();
         }
 	}
 }

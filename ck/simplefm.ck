@@ -1,68 +1,98 @@
 // simplefm.ck
 // A garden-variety FM synth.
+//
+// chuck with:
+//--- MidiInstrument.ck
+//--- MidiMixer.ck
+//--- AmpEnvelope.ck
+//
 // Brian Sorahan 2013
 
-// Global UGens
-Gain masterGain;
-JCRev r;
-masterGain => r => dac;
-0.99 => masterGain.gain;
-0.2 => r.mix;
 
+class SimpleFM extends MidiInstrument {
+    // Modulator params
+    float harmonicity;
+    float modFreq;
+    32 => int ccHarmonicity;
+    33 => int ccModFreq;
 
-
-float harmonicity;
-float modFreq;
-
-fun void voice(NoteEvent @ noteEvent, UGen out) {
-    // keep the gain under control
-    4.0 => float polyphony;
-
-    // Get note data
-    noteEvent.note => int note;
-    noteEvent.velocity => int velocity;
-    noteEvent.noteOff @=> Event @ noteOff;
+    AmpEnvelope ampEnvelope;
     
-    // Audio patch
-	SinOsc carrier;
-    SinOsc modulator;
-    modulator => carrier => out;
+    // Output params
+    Gain out;
+    0.9 => out.gain;
 
-    2 => carrier.sync; // fm
-    velocity / 128.0 => float vel;
-    vel => carrier.gain;
-    harmonicity => modulator.gain;
-    modFreq => modulator.freq;
+    fun void voice(NoteEvent noteEvent) {
+        // keep the gain under control
+        4.0 => float polyphony;
 
-    // play it
-    note => Std.mtof => carrier.freq;
-    noteOff => now;
-}
+        // Get note data
+        noteEvent.note => int note;
+        noteEvent.velocity => int velocity;
+        
+        // Audio patch
+	    SinOsc carrier;
+        SinOsc modulator;
+        ampEnvelope.getEnvelope() @=> ADSR @ ampEnv;
+        modulator => carrier => ampEnv => out;
 
-// Control modulation with MIDI CC
-fun void control(ControlEvent @ controlEvent) {
-    controlEvent.cc => int cc;
-    controlEvent.val => int val;
-    
-    if (cc == 32) {
-        val => Std.mtof => harmonicity;
-    } else if (cc == 33) {
-        val => Std.mtof => modFreq;
+        2 => carrier.sync; // fm
+        velocity / 128.0 => float vel;
+        vel / polyphony => carrier.gain;
+        harmonicity => modulator.gain;
+        modFreq => modulator.freq;
+
+        // dynamically control modulator params
+        spork ~ dynamicControl(MidiInstrument.controlEvent, modulator);
+        
+        // play it
+        note => Std.mtof => carrier.freq;
+        1 => ampEnv.keyOn;
+        noteEvent.noteOff => now;
+        1 => ampEnv.keyOff;
+        ampEnvelope.release => now;
+    }
+
+    // Control modulation with MIDI CC
+    fun void control(ControlEvent cev) {
+        cev.cc => int cc;
+        cev.val => int val;
+        if (cc == ccHarmonicity) {
+            val => Std.mtof => harmonicity;
+        } else if (cc == ccModFreq) {
+            val => Std.mtof => modFreq;
+        } else {
+            ampEnvelope.control(cc, val);
+        }
+    }
+
+    // Control the harmonicity and modulator frequency per-voice.
+    // This function should be sporked to a separate shred.
+    fun void dynamicControl(ControlEvent cev, SinOsc modulator) {
+        // Infinite loop
+        while (true) {
+            cev => now;
+            cev.cc => int cc;
+            cev.val => int val;
+            if (cc == ccHarmonicity) {
+                val => Std.mtof => modulator.gain;
+            } else if (cc == ccModFreq) {
+                val => Std.mtof => modulator.freq;
+            }
+        }
     }
 }
 
 
 
-////////////////////////////////////////
-// Spork 'em
-////////////////////////////////////////
+SimpleFM simpleFM;
+MidiMixer mixer;
+mixer.masterGain => dac;
+mixer.connectReverb(simpleFM.out);
 
-NoteEvent @ noteEvent;
-ControlEvent @ controlEvent;
-MidiInstrument.noteEvent @=> noteEvent;
-MidiInstrument.controlEvent @=> controlEvent;
-spork ~ voice(noteEvent, masterGain);
-spork ~ control(controlEvent);
+spork ~ MidiInstrument.noteListen(simpleFM);
+spork ~ MidiInstrument.controlListen(simpleFM);
+spork ~ MidiInstrument.controlListen(mixer);
 
 while (1) {
     1000::ms => now;
