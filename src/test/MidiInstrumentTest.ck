@@ -23,8 +23,8 @@ public class MidiInstrumentTest extends MidiInstrument {
 // Test initialization
 MidiInstrumentTest test;
 
-spork ~ MidiInstrument.listen(MidiInstrument.noteEvent, test);
-spork ~ MidiInstrument.listen(MidiInstrument.controlEvent, test);
+spork ~ MidiInstrument.sendNotesTo(test);
+spork ~ MidiInstrument.sendControlTo(test);
 
 while (true) {
     1000::ms => now;

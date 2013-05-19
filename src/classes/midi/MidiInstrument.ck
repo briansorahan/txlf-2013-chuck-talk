@@ -30,14 +30,17 @@ public class MidiInstrument {
     static NoteEvent @ noteEvent;
     static ControlEvent @ controlEvent;
 
-    fun static void noteListen(MidiInstrument inst) {
+    Gain out;
+    0.99 => out.gain;
+
+    fun static void sendNotesTo(MidiInstrument inst) {
         while (true) {
             noteEvent => now;
             spork ~ inst.voice(noteEvent);
         }
     }
 
-    fun static void controlListen(MidiInstrument inst) {
+    fun static void sendControlTo(MidiInstrument inst) {
         while (true) {
             controlEvent => now;
             spork ~ inst.control(controlEvent);

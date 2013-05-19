@@ -14,11 +14,11 @@
 SimpleFM simpleFM;
 MidiMixer mixer;
 mixer.masterGain => dac;
-mixer.connectReverb(simpleFM.out);
+simpleFM.out => mixer.echo;
 
-spork ~ MidiInstrument.noteListen(simpleFM);
-spork ~ MidiInstrument.controlListen(simpleFM);
-spork ~ MidiInstrument.controlListen(mixer);
+spork ~ MidiInstrument.sendNotesTo(simpleFM);
+spork ~ MidiInstrument.sendControlTo(simpleFM);
+spork ~ MidiInstrument.sendControlTo(mixer);
 
 while (1) {
     1000::ms => now;

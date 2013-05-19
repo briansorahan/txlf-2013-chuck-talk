@@ -15,8 +15,6 @@
 public class VibratoFM extends SimpleFM {
     // @Override
     fun float mapModFreq(int val) {
-        return val - 128 => Std.mtof;
+        return val - 63 => Std.mtof;
     }
 }
-
-

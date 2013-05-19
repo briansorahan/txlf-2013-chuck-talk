@@ -16,11 +16,11 @@
 VibratoFM vibratoFM;
 MidiMixer mixer;
 mixer.masterGain => dac;
-mixer.connectReverb(vibratoFM.out);
+vibratoFM.out => mixer.echo;
 
-spork ~ MidiInstrument.noteListen(vibratoFM);
-spork ~ MidiInstrument.controlListen(vibratoFM);
-spork ~ MidiInstrument.controlListen(mixer);
+spork ~ MidiInstrument.sendNotesTo(vibratoFM);
+spork ~ MidiInstrument.sendControlTo(vibratoFM);
+spork ~ MidiInstrument.sendControlTo(mixer);
 
 while (1) {
     1000::ms => now;

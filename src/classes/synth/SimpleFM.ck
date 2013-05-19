@@ -18,26 +18,18 @@ public class SimpleFM extends MidiInstrument {
 
     AmpEnvelope ampEnvelope;
     
-    // Output params
-    Gain out;
-    0.9 => out.gain;
-
-    fun void voice(NoteEvent noteEvent) {
+    fun void voice(NoteEvent nev) {
         // keep the gain under control
         4.0 => float polyphony;
 
-        // Get note data
-        noteEvent.note => int note;
-        noteEvent.velocity => int velocity;
-        
         // Audio patch
 	    SinOsc carrier;
         SinOsc modulator;
+        2 => carrier.sync; // fm
         ampEnvelope.getEnvelope() @=> ADSR @ ampEnv;
         modulator => carrier => ampEnv => out;
 
-        2 => carrier.sync; // fm
-        velocity / 128.0 => float vel;
+        nev.velocity / 128.0 => float vel;
         vel / polyphony => carrier.gain;
         harmonicity => modulator.gain;
         modFreq => modulator.freq;
@@ -46,9 +38,9 @@ public class SimpleFM extends MidiInstrument {
         spork ~ dynamicControl(MidiInstrument.controlEvent, modulator);
         
         // play it
-        note => Std.mtof => carrier.freq;
+        nev.note => Std.mtof => carrier.freq;
         1 => ampEnv.keyOn;
-        noteEvent.noteOff => now;
+        nev.noteOff => now;
         1 => ampEnv.keyOff;
         ampEnvelope.release => now;
     }
