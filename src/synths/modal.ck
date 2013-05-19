@@ -6,7 +6,7 @@
 //--- ControlEvent.ck
 //--- MidiInstrument.ck
 //--- MidiMixer.ck
-//--- AmpEnvelope.ck
+//--- EnvelopeGenerator.ck
 //--- Modal.ck
 //
 // Brian Sorahan 2013

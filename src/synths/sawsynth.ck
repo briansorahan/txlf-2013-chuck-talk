@@ -13,7 +13,7 @@
 SawSynth sawSynth;
 MidiMixer mixer;
 mixer.masterGain => dac;
-sawSynth.out => mixer.reverb;
+sawSynth.out => mixer.echo;
 
 spork ~ MidiInstrument.sendNotesTo(sawSynth);
 spork ~ MidiInstrument.sendControlTo(sawSynth);

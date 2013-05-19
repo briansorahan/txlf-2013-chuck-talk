@@ -104,9 +104,15 @@ function void handleNote(NoteEvent nev, Event @ offEvents[], MidiMsg midiMsg, in
         // Trigger Note On
         note => nev.note;
         velocity => nev.velocity;
-        Event off;
-        off @=> offEvents[note];
-        off @=> nev.noteOff;
+
+        if (offEvents[note] == null) {
+            Event off;
+            off @=> offEvents[note];
+            off @=> nev.noteOff;
+        } else {
+            offEvents[note] @=> nev.noteOff;
+        }
+            
         nev.broadcast();
 		me.yield();
 	}

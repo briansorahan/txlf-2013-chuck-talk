@@ -4,7 +4,7 @@
 // chuck with:
 //--- MidiInstrument.ck
 //--- MidiMixer.ck
-//--- AmpEnvelope.ck
+//--- EnvelopeGenerator.ck
 //
 // Brian Sorahan 2013
 
@@ -16,7 +16,7 @@ public class SimpleFM extends MidiInstrument {
     32 => int ccHarmonicity;
     33 => int ccModFreq;
 
-    AmpEnvelope ampEnvelope;
+    EnvelopeGenerator ampEnvelope;
     
     fun void voice(NoteEvent nev) {
         // keep the gain under control
@@ -26,7 +26,7 @@ public class SimpleFM extends MidiInstrument {
 	    SinOsc carrier;
         SinOsc modulator;
         2 => carrier.sync; // fm
-        ampEnvelope.getEnvelope() @=> ADSR @ ampEnv;
+        ampEnvelope.getADSR() @=> ADSR @ ampEnv;
         modulator => carrier => ampEnv => out;
 
         nev.velocity / 128.0 => float vel;
