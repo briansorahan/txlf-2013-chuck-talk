@@ -4,7 +4,7 @@
 # Otherwise we could just use a wildcard instead of addprefix.
 MIDICLASSES := $(addprefix classes/midi/, NoteEvent.ck ControlEvent.ck MidiInstrument.ck MidiMixer.ck)
 
-SYNTHCLASSES := $(addprefix classes/synth/, EnvelopeGenerator.ck SimpleFM.ck VibratoFM.ck Modal.ck SawSynth.ck)
+SYNTHCLASSES := $(addprefix classes/synth/, EnvelopeGenerator.ck SimpleFM.ck VibratoFM.ck Modal.ck SawSynth.ck Organ.ck Additive.ck)
 
 MIDITEST = test/MidiInstrumentTest.ck
 
@@ -37,3 +37,6 @@ modal-synth:
 
 saw-synth:
 	chuck $(MIDICLASSES) $(SYNTHCLASSES) synths/sawsynth.ck
+
+organ:
+	chuck $(MIDICLASSES) $(SYNTHCLASSES) synths/organ.ck
