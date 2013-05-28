@@ -1,0 +1,1 @@
+365::day + 6::hour + 13::minute + 53::second => now;
