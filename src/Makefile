@@ -1,4 +1,4 @@
-.PHONY: test additive-synth simple-fm vibrato-fm modal-synth
+.PHONY: test additive-synth simple-fm vibrato-fm modal-synth saw-synth
 
 # Unfortunately, the order in which we load classes matters.
 # Otherwise we could just use a wildcard instead of addprefix.
