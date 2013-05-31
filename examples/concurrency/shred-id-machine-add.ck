@@ -1,7 +1,9 @@
-chout <= "My id is " + me.id() <= IO.newline();
-for (0 => int i; i < 5; i++) {
-    Machine.add("printID") => int id;
-    chout <= "ID of the sporked shred is " + id <= IO.newline();
-}
+4 => int children;
+int ids[children];
 
-100::ms => now;
+chout <= "Parent's id is " + me.id() <= IO.newline();
+
+for (0 => int i; i < children; i++) {
+    Machine.add("printID") => ids[i];
+    chout <= "Child's id is " + ids[i] <= IO.newline();
+}
